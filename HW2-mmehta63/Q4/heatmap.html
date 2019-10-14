@@ -1,0 +1,213 @@
+				<!DOCTYPE html>
+				<html>
+					<head>
+						<meta charset="utf-8">
+							<title>mmehta63</title>
+							<script type="text/javascript" src="../lib/d3.v3.min.js"></script>
+							<style type="text/css">
+						.axis path,
+						.axis line {
+						fill: none;
+						stroke: none;
+						shape-rendering: crispEdges;
+						}
+						.axis text {
+						font-family: Calibri;
+						font-size: 12px;
+						}
+						.label {
+						font-weight: bold;
+						}
+						.tile {
+						shape-rendering: crispEdges;
+						stroke-color: grey;
+						stroke-opacity: 0.7;
+						}
+						h2 {
+						text-align: left;
+						font-family: Calibri;
+						font-size:  25px;
+						margin-left: 150px;
+						}
+						
+						#selectlist{
+						position:absolute;
+						margin-left: 300px;
+						margin-top:0px;
+						}
+						
+						#heatmap{
+						margin-top:20px;
+						font-family: Calibri;
+						}
+						</style>
+						</head>
+						<body onload="heatmap()">
+							<h2>Vizualising Wizarding Houses and Spells</h2>
+							<div id="selectlist">House </div>
+							<div id="heatmap"></div>
+							<script type="text/javascript">
+						var data_gryffindor = [];
+						var data_slytherin = [];
+						var data_hufflepuff = [];
+						var data_ravenclaw =[];
+						var fulldata = [];
+						d3.csv ("heatmap.csv",function(error, data) {
+						if (error) throw error;
+						data.forEach( function(row, i) {
+						Object.keys(row).forEach( function(header) {
+						if(header == "SpellType" || header == "House") {return ;}
+						else {
+						fulldata.push({"House": row["House"], "SpellType": row["SpellType"], "Book": header, "Val": +row[header]});
+						}
+						});
+						});
+						
+						});
+
+						var housename = ["Gryffindor", "Hufflepuff", "Ravenclaw" , "Slytherin"];
+						var select = d3.select('#selectlist')
+						.append('select')
+						.attr('class','select')
+						.on('change',onchange);
+						var options = select
+						.selectAll('option')
+						.data(housename).enter()
+						.append('option')
+						.text(function (d) { return d; });
+						function onchange() {
+							d3.select("svg").remove();
+							var house = d3.select('select').property('value');
+							var filtered = fulldata.filter(d => d.House == house);;
+							heatmap(filtered);
+						};
+						function heatmap(data = fulldata.filter(d => d.House == "Gryffindor")){
+						
+						var Book = [];
+						var SpellType = [];
+						data.forEach(function(d){
+							Book.push(d.Book);
+							SpellType.push(d.SpellType);
+						})
+						Book = d3.set(Book).values();
+						SpellType = d3.set(SpellType).values().sort();
+						
+						var margin = {top: 50, right: 90, bottom: 70, left: 200},
+						w = 600 - margin.left - margin.right,
+						grid =  Math.floor(w / SpellType.length),
+						h = grid * (Book.length+2.5);
+						var Book_range = [];
+						var SpellType_range = [];
+						for (var i = 0; i <= Book.length; i++){
+							SpellType_range.push(i*grid);
+							if (i == 7)
+								break;
+							else
+								Book_range.push(i*grid);
+						}
+						var xScale = d3.scale.ordinal()
+						.domain(SpellType)
+						.range(SpellType_range);
+						var yScale = d3.scale.ordinal()
+						.domain(Book)
+						.range(Book_range);
+						
+						var svg = d3.select("#heatmap").append("svg")
+						.attr("width", w + margin.left + margin.right)
+						.attr("height", h + margin.top + margin.bottom)
+						.append("g")
+						.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+						
+						//add house labels
+						var yAxis = svg.selectAll("yAxis")
+						.data(Book)
+						.enter().append("text")
+						.text(function (d) { return d; })
+						.attr("x", 0)
+						.attr("y", function (d, i) { return i * grid; })
+						.style("text-anchor", "end")
+						.style("font-family", "Calibri")
+						.style("font-size", "12px")
+						.attr("transform", "translate("+ (-10) + "," + grid / 1.5 + ")");
+						
+						var xAxis = d3.svg.axis()
+						.scale(xScale)
+						.ticks(4)
+						.orient("bottom")
+						.tickFormat(SpellType.forEach(function(d) {
+						return d ;
+						}));
+
+						svg.append("g")
+						.attr("class", "x axis")
+						.attr("transform", "translate(0," + grid * (Book.length) + ")")
+						.call(xAxis)
+						.selectAll("text")
+						.style("text-anchor", "end")
+						.attr("x",-10)
+						.attr("dy", "1.5em")
+						.attr("transform", "rotate(270)");
+						
+						var colors = ["#fff7f3","#fde0dd","#fcc5c0","#fa9fb5","#f768a1","#dd3497","#ae017e","#7a0177","#49006a"];
+						var count_domain = [];
+						data.forEach(function (d,i){count_domain[i] = d.Val});
+						//display heatmap
+						var colorScale = d3.scale.quantile()
+						.domain(count_domain)
+						.range(colors);
+						
+						svg.selectAll("tile")
+						.data(data)
+						.enter().append("rect")
+						.attr("class", "tile")
+						.attr("x", function(d) { return xScale(d.SpellType); })
+						.attr("y", function(d) { return yScale(d.Book); })
+						.attr("width", grid-2)
+						.attr("height", grid-2)
+						.style("fill", function(d) { return colorScale(d.Val); });
+						
+						svg.append("text")
+						.text('Book')
+						.attr('class','label_heatmap')
+						.style("font-weight","bold")
+						.style("font-size", "13px")
+						.attr('x', -50)
+						.attr('y', -10);
+						
+						svg.append("text")
+						.text('Spell Type')
+						.attr('class','label_heatmap')
+						.style("font-weight","bold")
+						.style("font-size", "13px")
+						.attr('x',w + 5)
+						.attr('y',h - grid*2.5)
+						.attr('dy','0.75em');
+
+						svg.append("text")
+						.text('No. of Spells')
+						.attr('class','label_heatmap')
+						.style("font-weight","bold")
+						.style("font-size", "13px")
+						.attr('x', 0)
+						.attr('y',h+15);
+
+						var legend = svg.selectAll("legend")
+						.data([0].concat(colorScale.quantiles()), function(d) { return d; });
+						legend.enter().append("g")
+						.attr("class", "legend");
+						legend.append("rect")
+						.attr("x", function(d, i) { return grid * i; })
+						.attr("y", h + 25 )
+						.attr("width", grid)
+						.attr("height", grid / 2+2)
+						.style("fill", function(d, i) { return colors[i]; });
+						legend.append("text")
+						.attr("class", "labels")
+						.text(function(d) { return Math.round(d); })
+						.attr("x", function(d, i) { return grid * i; })
+						.attr("y", h + 70);
+						}
+						
+							</script>
+						</body>
+					</html>

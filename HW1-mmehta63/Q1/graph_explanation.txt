@@ -1,0 +1,5 @@
+Palette: "Modularity Class", detects communities and colorize clusters. 
+For Size: "Degree" (sum of total number of edges) - signifies node importance. 
+"Force Atlas" layout: Conveys information using nodes’ spatial positions.
+"Noverlap" layout: Ensures symmetric plot and non-overlapping nodes.
+Proportional Node labeling: Ensures visual readability.

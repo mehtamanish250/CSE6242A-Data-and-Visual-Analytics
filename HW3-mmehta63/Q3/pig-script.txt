@@ -1,0 +1,7 @@
+bigrams = LOAD 's3://cse6242oan-2018fall-aws-big/*' AS (bigram:chararray, year:int, occurrences:double, books:double);
+filter1 = FILTER bigrams BY (occurrences >= 300.0) AND (books >= 12.0);
+filter2 = GROUP filter1 BY bigram;
+pop_table = FOREACH filter2 GENERATE group as bigram, (SUM(filter1.occurrences)/SUM(filter1.books)) AS avg_pop;
+all_result = ORDER pop_table BY avg_pop DESC, bigram ASC;
+final_result = LIMIT all_result 15;
+STORE final_result INTO 's3://cse6242-mmehta63/output-big/' USING PigStorage ('\t');

@@ -1,0 +1,5 @@
+if(value == 'M', 0, if(value == 'F', 1, value))
+if(isBlank(value), "0",value)
+if(value == "55+", "56-100", value)
+if(toNumber(value) > 1000, 1, 0)
+3319,P00025442

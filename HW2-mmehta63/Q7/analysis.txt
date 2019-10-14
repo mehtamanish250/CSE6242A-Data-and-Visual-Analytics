@@ -1,0 +1,24 @@
+Ease to develop (for developers)
+	D3 : Time consuming, data bound to SVG elements; each coded individually.
+	Tableau : Easy Drag-Drop, data experimentation easy, no programming pre-requisite, quick viz development possible.
+	Python : Libraries (pyplot, seaborn) used to develop graphs, quicker than D3 but familiarity with coding needed.
+	
+Ease to maintain (for developers)
+	D3 : Easy; auto-updated with data upadtion.
+	Tableau : Hard; maintenance needed with dataset updation. Automatic but not real time.
+	Python : Medium; script running necessary to update.
+	
+Usability (for end users)
+	D3 : Extensively interactive visualizations.
+	Tableau : Interactive graphs but limited visualization choices.
+	Python : Limited options; doesn't support interactive graphs.
+	
+Scalability
+	D3 : Hard; manual coding for each bit. Larger dataset means longer computation.
+	Tableau: Scalable.
+	Python : Can handle large dataset; scalable viz.
+
+System requirements (for end users)
+	D3 : Browser support for javascript and html; transferable code.
+	Tableau : Proprietary software; licensing and purchase needed.
+	Python : Systems requirements and package installation needed.

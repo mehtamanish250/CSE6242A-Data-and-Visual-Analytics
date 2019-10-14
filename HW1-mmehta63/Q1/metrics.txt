@@ -1,0 +1,3 @@
+Average Degree = 1.503; Average number of edges for a node, be it in or out edges.
+Network Diameter = 13; Maximum distance between all pairs of nodes - it is the longest length among all of the shortest paths between every pair of nodes in the graph.
+Average Path Length = 3.274; The average graph-distance between all pairs of nodes. In other words, it is the average of the path length for all possibles pairs of nodes and gives information about how close the nodes are from each other.

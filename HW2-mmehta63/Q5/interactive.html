@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Q5</title>
+        <script type="text/javascript" src="../lib/d3.v3.min.js"></script>
+        <style type="text/css">
+        body {
+        font: 10px sans-serif;
+        }
+        .tile {
+        shape-rendering: crispEdges;
+        }
+        .axis {
+        font-size: 8px;
+        fill: #000000;  
+        }
+        .axis path,
+        .axis line {           
+            fill: none;
+            stroke: #000000;
+            shape-rendering: crispEdges;
+            stroke-width: 1px;
+        }
+        .mainaxis {
+        font-size: 20px;
+        fill: #808080;  
+        }
+        .mainaxis line{
+            display: none; 
+
+        }
+        .axis text{
+        font-size: 10px;
+        }
+        .line {
+        fill: none;
+        stroke: steelblue;
+        stroke-width: 2px;
+        }
+        .scatter {
+        }
+        </style>
+    </head>
+    <body>
+        <script type="text/javascript">
+ 
+         var data = [{
+            city: 'San Antonio',
+            population_2012: 1383505,
+            growth: {
+                year_2013: 25405,
+                year_2014: 26644,
+                year_2015: 28593,
+                year_2016: 23591,
+                year_2017: 24208
+            }
+        }, {
+            city: 'New York',
+            population_2012: 8383504,
+            growth: {
+                year_2013: 75138,
+                year_2014: 62493,
+                year_2015: 61324,
+                year_2016: 32967,
+                year_2017: 7272
+            }
+        }, {
+            city: 'Chicago',
+            population_2012: 2717989,
+            growth: {
+                year_2013: 6493,
+                year_2014: 2051,
+                year_2015: -1379,
+                year_2016: -4879,
+                year_2017: -3825
+            }
+        }, {
+            city: 'Los Angeles',
+            population_2012: 3859267,
+            growth: {
+                year_2013: 32516,
+                year_2014: 30885,
+                year_2015: 30791,
+                year_2016: 27657,
+                year_2017: 18643
+            }
+        }, {
+            city: 'Phoenix',
+            population_2012: 1495880,
+            growth: {
+                year_2013: 25302,
+                year_2014: 26547,
+                year_2015: 27310,
+                year_2016: 27003,
+                year_2017: 24036
+            }
+        }];
+
+        var formatComma = d3.format(",");
+        var margin = {top: 80, right: 80, bottom: 80, left: 120};
+        var width = 900-margin.left-margin.right;
+        var height = 400-margin.top-margin.bottom;
+        var svg = d3.select("body").append("svg")
+        .attr("width", width+margin.left+margin.right)
+        .attr("height", height+margin.top+margin.bottom)
+        .append("g")
+        .attr("transform", "translate("+margin.left+","+margin.top+")");
+        
+        data.forEach(function(d) {
+            d.population = (d.population_2012 + d.growth.year_2013 + d.growth.year_2014 + d.growth.year_2015 + d.growth.year_2016 + d.growth.year_2017);
+        })
+
+        data = data.sort(function(a, b) {
+            return d3.ascending(a.population, b.population);
+        })
+
+        xScale = d3.scale.linear()
+                    .domain([0, d3.max(data, function(d){
+                    return d.population;
+                    })])
+                    .range([0, width]);
+        
+        var yScale = d3.scale.ordinal()
+                        .domain(data.map(function(d){
+                        return d.city;
+                        }))
+                        .rangeRoundBands([height, 0], .1);
+        
+        var yAxis = d3.svg.axis().scale(yScale)
+                    .tickSize(0)
+                    .orient("left");
+                    svg.append("g")
+                    .attr("class", "mainaxis")
+                    .call(yAxis);
+
+        var width2 = 300;
+        var height2 =300;
+
+        var scatter_svg = d3.select("body")
+                            .append("svg")
+                            .attr("width", width2)
+                            .attr("height", height2)
+                            .attr("transform", "translate(" + 0 + ", " + -100 + ")")
+
+        // title
+        svg.append("text")
+        .attr("transform", "translate("+(width/4)+", -20)")
+        .style("font-weight","bold")
+        .style("font-size", "25px")
+        .text("Total Population by Cities");
+
+        var bars = svg.selectAll("rect")
+        .data(data)
+        .enter();
+
+        bars.append("rect")
+        .attr("fill", "grey")
+        .attr("x", 10)
+        .attr("y", function(d){
+        return yScale(d.city);
+        })
+        .attr("width", function(d){
+        return xScale(d.population);
+        })
+        .attr("height", yScale.rangeBand())
+        .on("mouseover", function (d) {
+            d3.select(this).transition().duration(10)
+            .attr("fill", "steelblue");
+
+            var svg1 = scatter_svg.append("g")
+                        .attr("class", "scatter")
+
+            var sum = d.population_2012;
+            var g_k = Object.keys(d.growth);
+            var g = [];
+            var i;
+
+            for (i = 0; i < g_k.length; i++){
+                g.push([(+g_k[i].substring(5)),d3.round((100.0*(d.growth[g_k[i]])/sum),2)]);
+                sum = sum + d.growth[g_k[i]];
+            }
+
+            var pad = 50;
+
+            //Create scale functions
+            var x_scale = d3.scale.linear()
+                            .domain(d3.extent(g, function(d){ return d[0];}))
+                            .range([pad, width2 - pad]);
+
+            var y_scale = d3.scale.linear()
+                            .domain(d3.extent(g, function(d){ return d[1];}))
+                            .range([height2 - pad, pad]);
+
+            //Define X axis
+            var xAxis = d3.svg.axis()
+                              .scale(x_scale)
+                              .orient("bottom")
+                              .ticks(5)
+                              .tickFormat(d3.format(""));
+
+            //Define Y axis
+            var yAxis = d3.svg.axis()
+                              .scale(y_scale)
+                              .orient("left")
+                              .ticks(7);
+
+            var line = d3.svg.line()
+                        .x(function(d) { return x_scale(d[0]); })
+                        .y(function(d) { return y_scale(d[1]); });
+            
+
+            svg1.append("g")
+                .attr("class", "x axis")
+                .attr("transform", function(){ return "translate(0," + (height2 - pad) + ")"; })
+                .call(xAxis)
+                .append("text")
+                .attr("dy", "3em")
+                .attr("x", width2 - pad)
+                .style("text-anchor", "end")
+                .text("Year");
+
+            svg1.append("g")
+                .attr("class", "y axis")
+                .attr("transform", function(){ return "translate(" + pad + ", 0)"; })
+                .call(yAxis)
+                .append("text")
+                .attr("dy", "4em")
+                .attr("x", -20)
+                .style("text-anchor", "end")
+                .text("Pct %");
+            
+            svg1.append("path")
+                .data([g])
+                .attr("class", "line")
+                .attr("d", line)
+                .attr("fill", "none")
+
+        })
+        .on("mouseout", function(d){
+        
+            d3.select(this).transition().duration(10)
+                .attr("fill", "grey");
+            d3.select(".scatter").remove();
+        });
+
+        bars.append("text")
+        .attr("x", margin.left/4)
+        .attr("y", function(d){
+        return yScale(d.city)+yScale.rangeBand()/2+4;
+        })
+        .attr("fill", "white")
+        .style("font-size", "20px")
+        .text(function(d){
+        return d3.format(',')(d.population);
+        });
+
+        </script>
+    </body>
